@@ -12,5 +12,12 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    proxy: {
+      "/api": {
+        target:
+          "https://hackaton-20261-front-587720740455.us-east1.run.app",
+        changeOrigin: true,
+      },
+    },
   },
 });
