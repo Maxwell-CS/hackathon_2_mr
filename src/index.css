@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+/* Thin custom scrollbars for the dense control-room aesthetic. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* ----------------------------------------------------------------------- */
+/* Skeleton shimmer                                                        */
+/* ----------------------------------------------------------------------- */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: #1e293b;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.06) 20%,
+    rgba(255, 255, 255, 0.12) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: skeleton-shimmer 1.6s infinite;
+}
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ======================================================================= */
+/* View Transition API                                                     */
+/* The "summary" -> "story" navigation tags a shared element. When the     */
+/* browser lacks startViewTransition, .vt-fade provides a manual fade.     */
+/* ======================================================================= */
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.vt-fade {
+  animation: vt-fade-in 0.32s ease both;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+}
+
+/* ======================================================================= */
+/* Checkpoint 5 - Scrollytelling                                           */
+/* ======================================================================= */
+
+/* The pinned stage layer that holds the persistent visual. */
+.story-stage-visual {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+}
+
+/* Scroll-driven progress bar. Uses the modern animation-timeline: scroll()  */
+/* when supported. The width is driven purely by scroll position.            */
+@supports (animation-timeline: scroll()) {
+  @keyframes story-progress-grow {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .story-progress-bar {
+    transform-origin: left center;
+    animation: story-progress-grow linear both;
+    animation-timeline: scroll(nearest block);
+  }
+  /* Each stage panel fades/zooms based on its own position in the scroller. */
+  @keyframes story-panel-reveal {
+    0% {
+      opacity: 0.15;
+      transform: translateY(28px) scale(0.985);
+    }
+    35%,
+    65% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    100% {
+      opacity: 0.15;
+      transform: translateY(-28px) scale(0.985);
+    }
+  }
+  .story-panel {
+    animation: story-panel-reveal linear both;
+    animation-timeline: view();
+    animation-range: entry 5% exit 95%;
+  }
+}
+
+/* When CSS scroll-driven animations are NOT supported, the JS fallback (an  */
+/* IntersectionObserver) toggles .is-active and we transition via classes.   */
+@supports not (animation-timeline: scroll()) {
+  .story-panel {
+    opacity: 0.2;
+    transform: translateY(24px);
+    transition:
+      opacity 0.4s ease,
+      transform 0.4s ease;
+  }
+  .story-panel.is-active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* prefers-reduced-motion: kill every scroll/transition animation and show   */
+/* all content statically. Required by Checkpoint 5.                         */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .story-panel,
+  .story-panel.is-active {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .skeleton::after {
+    display: none;
+  }
+}
+
+/* Focus visibility for keyboard navigation (Checkpoint 5 requirement). */
+:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
