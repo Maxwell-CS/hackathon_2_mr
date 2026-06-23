@@ -20,5 +20,4 @@ dist-ssr
 *.sw?
 
 # Env (keep .env.example tracked)
-.env
 .env.*.local
